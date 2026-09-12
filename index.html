@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SafeLoad Pro - controlled localhost load testing with profiles, percentiles, thresholds, and reports." />
+  <meta name="description" content="SafeLoad Pro - controlled localhost load testing with profiles, percentiles, thresholds, reports, and run history." />
   <title>SafeLoad Pro</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -13,7 +13,7 @@
       <div>
         <span class="eyebrow">CONTROLLED LOCAL BENCHMARKING</span>
         <h1>SafeLoad Pro</h1>
-        <p>Profile local services with bounded traffic, live percentiles, automatic safety stops, and exportable reports.</p>
+        <p>Profile local services with bounded traffic, live percentiles, automatic safety stops, exportable reports, and local run history.</p>
       </div>
       <div class="status-pill" id="statusPill">Idle</div>
     </header>
@@ -86,7 +86,8 @@
         <div class="actions">
           <button class="primary" type="submit" id="startBtn">Start controlled test</button>
           <button class="danger" type="button" id="stopBtn" disabled>Emergency stop</button>
-          <button class="ghost" type="button" id="exportBtn" disabled>Export report</button>
+          <button class="ghost" type="button" id="exportBtn" disabled>Export JSON</button>
+          <button class="ghost" type="button" id="exportCsvBtn" disabled>Export CSV</button>
         </div>
         <p class="error" id="errorBox"></p>
       </form>
@@ -129,13 +130,26 @@
       </div>
     </section>
 
+    <section class="card logs-card">
+      <div class="card-head">
+        <div><span class="eyebrow">RUN HISTORY</span><h2>Recent local results</h2></div>
+        <button class="ghost" id="clearHistory" type="button">Clear history</button>
+      </div>
+      <div class="log-table-wrap">
+        <table>
+          <thead><tr><th>Time</th><th>Profile</th><th>Total</th><th>Error rate</th><th>p95</th><th>Reason</th></tr></thead>
+          <tbody id="historyRows"><tr class="placeholder"><td colspan="6">No saved runs yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="card docs">
       <div><span class="eyebrow">PRO CONTROLS</span><h2>More insight, same strict limits</h2></div>
       <div class="feature-grid">
-        <article><strong>Constant</strong><span>Hold a fixed bounded request rate.</span></article>
-        <article><strong>Ramp</strong><span>Increase gradually from 1 RPS up to the selected cap.</span></article>
-        <article><strong>Step</strong><span>Increase in discrete stages while staying below the hard cap.</span></article>
-        <article><strong>Guardrails</strong><span>Auto-stop on excessive errors or p95 latency.</span></article>
+        <article><strong>Profiles</strong><span>Constant, ramp, and stepped bounded request rates.</span></article>
+        <article><strong>Percentiles</strong><span>Live p50, p95, and p99 latency tracking.</span></article>
+        <article><strong>Reports</strong><span>Export JSON summaries or CSV request samples.</span></article>
+        <article><strong>History</strong><span>Keep the five most recent run summaries in localStorage.</span></article>
       </div>
     </section>
   </main>

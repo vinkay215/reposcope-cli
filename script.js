@@ -2,6 +2,8 @@ const MAX_RPS = 5;
 const MAX_CONCURRENCY = 3;
 const MAX_DURATION = 30;
 const REQUEST_TIMEOUT_MS = 5000;
+const HISTORY_LIMIT = 5;
+const HISTORY_KEY = 'safeload.pro.history.v1';
 const ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
 
 const $ = (id) => document.getElementById(id);
@@ -9,9 +11,11 @@ const form = $('testForm');
 const startBtn = $('startBtn');
 const stopBtn = $('stopBtn');
 const exportBtn = $('exportBtn');
+const exportCsvBtn = $('exportCsvBtn');
 const statusPill = $('statusPill');
 const errorBox = $('errorBox');
 const logRows = $('logRows');
+const historyRows = $('historyRows');
 const sparkline = $('sparkline');
 
 let run = null;
@@ -68,6 +72,47 @@ function currentRps() {
     return Math.min(run.rps, Math.max(1, Math.ceil((run.rps * stage) / 3)));
   }
   return run.rps;
+}
+
+function loadHistory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed.slice(0, HISTORY_LIMIT) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistoryEntry(report) {
+  const history = loadHistory();
+  history.unshift({
+    generatedAt: report.generatedAt,
+    profile: report.profile,
+    target: report.target,
+    total: report.result.total,
+    errorRatePercent: report.result.errorRatePercent,
+    p95LatencyMs: report.result.p95LatencyMs,
+    reason: report.result.reason,
+  });
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, HISTORY_LIMIT)));
+  renderHistory();
+}
+
+function renderHistory() {
+  const history = loadHistory();
+  if (!history.length) {
+    historyRows.innerHTML = '<tr class="placeholder"><td colspan="6">No saved runs yet.</td></tr>';
+    return;
+  }
+  historyRows.innerHTML = history.map((item) => `
+    <tr>
+      <td>${new Date(item.generatedAt).toLocaleTimeString()}</td>
+      <td>${item.profile}</td>
+      <td>${item.total}</td>
+      <td>${Number(item.errorRatePercent).toFixed(1)}%</td>
+      <td>${Math.round(item.p95LatencyMs)} ms</td>
+      <td>${item.reason}</td>
+    </tr>`).join('');
 }
 
 function resetMetrics() {
@@ -128,9 +173,7 @@ function checkThresholds() {
     stopRun(`Auto-stop: error rate ${s.errorRate.toFixed(1)}%`);
     return;
   }
-  if (s.p95 >= run.maxP95) {
-    stopRun(`Auto-stop: p95 ${Math.round(s.p95)} ms`);
-  }
+  if (s.p95 >= run.maxP95) stopRun(`Auto-stop: p95 ${Math.round(s.p95)} ms`);
 }
 
 async function sendOne() {
@@ -174,9 +217,7 @@ function scheduleTick() {
   if (!run || run.stopped) return;
   const desired = currentRps();
   const now = performance.now();
-  const elapsed = now - run.lastDispatchAt;
-  const intervalMs = 1000 / desired;
-  if (elapsed >= intervalMs) {
+  if (now - run.lastDispatchAt >= 1000 / desired) {
     run.lastDispatchAt = now;
     sendOne();
   }
@@ -225,10 +266,37 @@ function stopRun(reason = 'Stopped') {
   statusPill.textContent = reason;
   lastReport = buildReport(reason);
   exportBtn.disabled = !lastReport;
+  exportCsvBtn.disabled = !lastReport;
+  if (lastReport) saveHistoryEntry(lastReport);
   const finishedRun = run;
   setTimeout(() => {
     if (run === finishedRun) statusPill.textContent = 'Idle';
   }, 2000);
+}
+
+function downloadBlob(content, type, filename) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function csvEscape(value) {
+  const text = String(value ?? '');
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function reportToCsv(report) {
+  const rows = [['index', 'status', 'latency_ms', 'profile_rps', 'timestamp']];
+  for (const sample of report.samples) {
+    rows.push([sample.index, sample.status || 'ERR', sample.latency, sample.rps, sample.at]);
+  }
+  return rows.map((row) => row.map(csvEscape).join(',')).join('\n');
 }
 
 form.addEventListener('submit', (event) => {
@@ -249,6 +317,7 @@ form.addEventListener('submit', (event) => {
     resetMetrics();
     lastReport = null;
     exportBtn.disabled = true;
+    exportCsvBtn.disabled = true;
     run = {
       url, profile, rps, concurrency, duration, maxErrorRate, maxP95,
       total: 0, success: 0, errors: 0, active: 0,
@@ -272,21 +341,22 @@ $('clearLogs').addEventListener('click', () => {
   logRows.innerHTML = '<tr class="placeholder"><td colspan="5">No requests yet.</td></tr>';
   sparkline.innerHTML = '';
 });
+$('clearHistory').addEventListener('click', () => {
+  localStorage.removeItem(HISTORY_KEY);
+  renderHistory();
+});
 $('profile').addEventListener('change', () => {
   $('profileHint').textContent = $('profile').selectedOptions[0].textContent;
 });
 exportBtn.addEventListener('click', () => {
   if (!lastReport) return;
-  const blob = new Blob([JSON.stringify(lastReport, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `safeload-report-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  downloadBlob(JSON.stringify(lastReport, null, 2), 'application/json', `safeload-report-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+});
+exportCsvBtn.addEventListener('click', () => {
+  if (!lastReport) return;
+  downloadBlob(reportToCsv(lastReport), 'text/csv;charset=utf-8', `safeload-samples-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`);
 });
 
 resetMetrics();
+renderHistory();
 setRunning(false);
