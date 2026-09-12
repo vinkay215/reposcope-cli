@@ -1,171 +1,101 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="NovaCart - cửa hàng công nghệ hiện đại, nhanh và thân thiện trên mọi thiết bị." />
-  <title>NovaCart — Modern Tech Store</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="description" content="SafeLoad Lab - a browser-based localhost load-test simulator with strict safety limits." />
+  <title>SafeLoad Lab</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="announcement">Miễn phí vận chuyển cho đơn từ 1.000.000₫ · Đổi trả trong 30 ngày</div>
-
-  <header class="site-header">
-    <a class="brand" href="#top" aria-label="NovaCart home">
-      <span class="brand-mark">N</span>
-      <span>NovaCart</span>
-    </a>
-
-    <nav class="desktop-nav" aria-label="Điều hướng chính">
-      <a href="#products">Sản phẩm</a>
-      <a href="#categories">Danh mục</a>
-      <a href="#benefits">Dịch vụ</a>
-      <a href="#newsletter">Ưu đãi</a>
-    </nav>
-
-    <div class="header-actions">
-      <button class="icon-btn" id="searchToggle" aria-label="Tìm kiếm">⌕</button>
-      <button class="cart-btn" id="cartButton" aria-label="Mở giỏ hàng">
-        Giỏ hàng <span id="cartCount">0</span>
-      </button>
-      <button class="menu-btn" id="menuButton" aria-label="Mở menu">☰</button>
-    </div>
-  </header>
-
-  <div class="mobile-nav" id="mobileNav">
-    <a href="#products">Sản phẩm</a>
-    <a href="#categories">Danh mục</a>
-    <a href="#benefits">Dịch vụ</a>
-    <a href="#newsletter">Ưu đãi</a>
-  </div>
-
-  <div class="search-panel" id="searchPanel">
-    <div class="search-box">
-      <span>⌕</span>
-      <input id="searchInput" type="search" placeholder="Tìm laptop, tai nghe, bàn phím..." autocomplete="off" />
-      <button id="clearSearch" aria-label="Xóa tìm kiếm">×</button>
-    </div>
-  </div>
-
-  <main id="top">
-    <section class="hero">
-      <div class="hero-copy">
-        <span class="eyebrow">NEW COLLECTION 2026</span>
-        <h1>Công nghệ tốt hơn.<br><span>Trải nghiệm đơn giản hơn.</span></h1>
-        <p>Khám phá những thiết bị được tuyển chọn cho công việc, sáng tạo và giải trí mỗi ngày.</p>
-        <div class="hero-actions">
-          <a href="#products" class="btn primary">Mua ngay</a>
-          <a href="#categories" class="btn ghost">Khám phá danh mục</a>
-        </div>
-        <div class="hero-stats">
-          <div><strong>12K+</strong><span>Khách hàng</span></div>
-          <div><strong>4.9/5</strong><span>Đánh giá</span></div>
-          <div><strong>24h</strong><span>Giao nhanh</span></div>
-        </div>
-      </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="orb orb-a"></div>
-        <div class="orb orb-b"></div>
-        <div class="device-card floating-card">
-          <div class="device-screen">NOVA</div>
-          <div class="device-base"></div>
-        </div>
-        <div class="mini-badge badge-one">⚡ Hiệu năng cao</div>
-        <div class="mini-badge badge-two">✓ Chính hãng</div>
-      </div>
-    </section>
-
-    <section class="section" id="categories">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">SHOP BY CATEGORY</span>
-          <h2>Danh mục nổi bật</h2>
-        </div>
-      </div>
-      <div class="category-grid" id="categoryGrid"></div>
-    </section>
-
-    <section class="section products-section" id="products">
-      <div class="section-head products-head">
-        <div>
-          <span class="eyebrow">CURATED FOR YOU</span>
-          <h2>Sản phẩm bán chạy</h2>
-        </div>
-        <div class="filters" id="filters">
-          <button class="filter active" data-filter="all">Tất cả</button>
-          <button class="filter" data-filter="laptop">Laptop</button>
-          <button class="filter" data-filter="audio">Âm thanh</button>
-          <button class="filter" data-filter="accessory">Phụ kiện</button>
-        </div>
-      </div>
-      <div class="product-grid" id="productGrid"></div>
-      <div class="empty-state" id="emptyState">Không tìm thấy sản phẩm phù hợp.</div>
-    </section>
-
-    <section class="promo-section">
-      <div class="promo-card promo-dark">
-        <span class="eyebrow">WORK SMARTER</span>
-        <h3>Workspace tối giản.<br>Hiệu suất tối đa.</h3>
-        <p>Combo thiết bị dành cho góc làm việc hiện đại.</p>
-        <a href="#products">Xem bộ sưu tập →</a>
-      </div>
-      <div class="promo-card promo-light">
-        <span class="eyebrow">MEMBER DEAL</span>
-        <h3>Giảm thêm 10%</h3>
-        <p>Đăng ký thành viên để nhận ưu đãi cho đơn hàng đầu tiên.</p>
-        <a href="#newsletter">Nhận ưu đãi →</a>
-      </div>
-    </section>
-
-    <section class="section benefits" id="benefits">
-      <article><span>↗</span><h3>Giao hàng nhanh</h3><p>Miễn phí toàn quốc cho đơn đủ điều kiện.</p></article>
-      <article><span>↺</span><h3>Đổi trả dễ dàng</h3><p>30 ngày đổi trả với quy trình minh bạch.</p></article>
-      <article><span>◇</span><h3>Sản phẩm chính hãng</h3><p>Nguồn hàng rõ ràng và bảo hành đầy đủ.</p></article>
-      <article><span>♡</span><h3>Hỗ trợ tận tâm</h3><p>Đội ngũ hỗ trợ sẵn sàng khi bạn cần.</p></article>
-    </section>
-
-    <section class="newsletter" id="newsletter">
+  <main class="shell">
+    <header class="topbar">
       <div>
-        <span class="eyebrow">STAY IN THE LOOP</span>
-        <h2>Nhận deal mới trước mọi người.</h2>
-        <p>Ưu đãi, sản phẩm mới và mẹo công nghệ được gửi thẳng tới email.</p>
+        <span class="eyebrow">LOCAL LOAD TESTING</span>
+        <h1>SafeLoad Lab</h1>
+        <p>Run small, controlled request tests against services you own on your local machine.</p>
       </div>
-      <form id="newsletterForm" class="newsletter-form">
-        <input id="emailInput" type="email" placeholder="you@example.com" required />
-        <button type="submit">Đăng ký</button>
+      <div class="status-pill" id="statusPill">Idle</div>
+    </header>
+
+    <section class="notice">
+      <strong>Safety boundary:</strong> this tool only accepts <code>localhost</code>, <code>127.0.0.1</code>, and <code>[::1]</code>. RPS, concurrency, and duration are hard-capped in code.
+    </section>
+
+    <section class="grid">
+      <form class="card controls" id="testForm">
+        <div class="card-head">
+          <div><span class="eyebrow">CONFIGURATION</span><h2>Test profile</h2></div>
+        </div>
+
+        <label>
+          Target URL
+          <input id="target" type="url" value="http://localhost:3000/" required />
+          <small>Allowed hosts: localhost, 127.0.0.1, ::1</small>
+        </label>
+
+        <div class="two-col">
+          <label>
+            Requests / second
+            <input id="rps" type="number" min="1" max="5" value="2" required />
+          </label>
+          <label>
+            Concurrency
+            <input id="concurrency" type="number" min="1" max="3" value="1" required />
+          </label>
+        </div>
+
+        <label>
+          Duration (seconds)
+          <input id="duration" type="number" min="1" max="30" value="10" required />
+        </label>
+
+        <label class="check-row">
+          <input id="ownership" type="checkbox" required />
+          <span>I own or am authorized to test this local service.</span>
+        </label>
+
+        <div class="actions">
+          <button class="primary" type="submit" id="startBtn">Start safe test</button>
+          <button class="danger" type="button" id="stopBtn" disabled>Stop now</button>
+        </div>
+        <p class="error" id="errorBox"></p>
       </form>
-      <p class="form-message" id="formMessage"></p>
+
+      <section class="card metrics">
+        <div class="card-head">
+          <div><span class="eyebrow">LIVE METRICS</span><h2>Current run</h2></div>
+          <span id="elapsed">0.0s</span>
+        </div>
+        <div class="metric-grid">
+          <article><span>Total</span><strong id="total">0</strong></article>
+          <article><span>Success</span><strong id="success">0</strong></article>
+          <article><span>Errors</span><strong id="errors">0</strong></article>
+          <article><span>Avg latency</span><strong id="latency">0 ms</strong></article>
+        </div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div class="spark" id="sparkline" aria-label="Latency history"></div>
+      </section>
+    </section>
+
+    <section class="card logs-card">
+      <div class="card-head">
+        <div><span class="eyebrow">REQUEST LOG</span><h2>Latest samples</h2></div>
+        <button class="ghost" id="clearLogs" type="button">Clear</button>
+      </div>
+      <div class="log-table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Status</th><th>Latency</th><th>Time</th></tr></thead>
+          <tbody id="logRows"><tr class="placeholder"><td colspan="4">No requests yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card docs">
+      <div><span class="eyebrow">DESIGN GOAL</span><h2>Safe by construction</h2></div>
+      <p>The browser validates the hostname before every run, rejects non-local targets, caps the load profile, and lets you stop immediately. Requests use <code>cache: "no-store"</code> and a short per-request abort timeout.</p>
     </section>
   </main>
-
-  <footer>
-    <div class="footer-brand"><span class="brand-mark">N</span><strong>NovaCart</strong></div>
-    <p>Modern essentials for modern life.</p>
-    <div class="footer-links">
-      <a href="#products">Sản phẩm</a><a href="#benefits">Chính sách</a><a href="#newsletter">Liên hệ</a>
-    </div>
-    <small>© 2026 NovaCart. Demo storefront built with HTML, CSS & JavaScript.</small>
-  </footer>
-
-  <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
-    <div class="cart-header">
-      <div><span class="eyebrow">YOUR CART</span><h2>Giỏ hàng</h2></div>
-      <button id="closeCart" aria-label="Đóng giỏ hàng">×</button>
-    </div>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="cart-empty" id="cartEmpty">Giỏ hàng của bạn đang trống.</div>
-    <div class="cart-footer">
-      <div class="cart-total"><span>Tổng cộng</span><strong id="cartTotal">0₫</strong></div>
-      <button class="checkout-btn" id="checkoutButton">Thanh toán</button>
-      <small>Đây là website demo, không xử lý thanh toán thật.</small>
-    </div>
-  </aside>
-  <div class="overlay-screen" id="overlay"></div>
-  <div class="toast" id="toast"></div>
-
   <script src="script.js"></script>
 </body>
 </html>
