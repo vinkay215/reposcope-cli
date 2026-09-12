@@ -1,63 +1,57 @@
-# RepoScope CLI
+# SafeLoad Lab
 
-RepoScope is a lightweight Python command-line utility for inspecting public GitHub repositories. It uses only the Python standard library and returns a compact repository summary including stars, forks, open issues, primary language, default branch, and license.
+SafeLoad Lab is a small browser-based load-testing utility for services you own and run locally. It is intentionally constrained to loopback targets and conservative traffic limits.
+
+## Safety limits
+
+- Allowed targets: `localhost`, `127.0.0.1`, `[::1]`
+- Maximum requests per second: `5`
+- Maximum concurrency: `3`
+- Maximum test duration: `30 seconds`
+- Per-request timeout: `5 seconds`
+- Manual emergency stop button
+- Authorization checkbox required before each run
+
+These limits are enforced in `script.js`, not only by the form controls.
 
 ## Features
 
-- Inspect any public repository using `owner/name` syntax.
-- No third-party Python dependencies.
-- Human-readable terminal output.
-- Optional JSON output for scripts and automation.
-- Network timeout and basic GitHub/API error handling.
+- Responsive HTML/CSS dashboard
+- Live request, success, error, and latency metrics
+- Small latency sparkline
+- Latest-request log
+- Automatic stop at the configured duration
+- AbortController-based request timeout and emergency stop
+- No build step and no third-party JavaScript dependencies
 
-## Requirements
+## Run locally
 
-Python 3.9 or newer is recommended.
-
-## Usage
-
-```bash
-python github_inspector.py python/cpython
-```
-
-JSON output:
+Serve the repository with any static HTTP server, for example:
 
 ```bash
-python github_inspector.py python/cpython --json
+python3 -m http.server 8080
 ```
 
-Example fields returned:
+Then open:
 
 ```text
-Repository : python/cpython
-Description: The Python programming language
-Language   : Python
-Stars      : ...
-Forks      : ...
-Open issues: ...
-Branch     : main
-License    : Python-2.0
+http://localhost:8080
 ```
+
+Start a separate local service that you are authorized to test, enter its loopback URL, choose a bounded profile, confirm authorization, and start the run.
 
 ## Project structure
 
 ```text
 .
-├── github_inspector.py       # Main CLI application
-├── achievement-progress/     # Historical collaboration/progress notes
-├── CONTRIBUTING.md           # Contribution workflow
-├── CHANGELOG.md              # Project changes
-└── README.md
+├── index.html
+├── styles.css
+├── script.js
+├── README.md
+├── CONTRIBUTING.md
+└── CHANGELOG.md
 ```
 
-## Roadmap
+## Scope
 
-Planned improvements include repository health checks, contributor summaries, release information, rate-limit awareness, and optional authenticated GitHub requests.
-
-## Contributing
-
-Contributions are welcome. See `CONTRIBUTING.md` for the recommended branch and pull-request workflow.
-
-## Project history
-
-This repository began as a small GitHub workflow sandbox and has been converted into a practical CLI project. Existing history is intentionally retained as part of the repository's development record.
+SafeLoad Lab is designed for development and educational testing of local services. It intentionally refuses remote hosts and is not intended for stress testing third-party infrastructure.
