@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SafeLoad Lab - a browser-based localhost load-test simulator with strict safety limits." />
-  <title>SafeLoad Lab</title>
+  <meta name="description" content="SafeLoad Pro - controlled localhost load testing with profiles, percentiles, thresholds, and reports." />
+  <title>SafeLoad Pro</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
       <div>
-        <span class="eyebrow">LOCAL LOAD TESTING</span>
-        <h1>SafeLoad Lab</h1>
-        <p>Run small, controlled request tests against services you own on your local machine.</p>
+        <span class="eyebrow">CONTROLLED LOCAL BENCHMARKING</span>
+        <h1>SafeLoad Pro</h1>
+        <p>Profile local services with bounded traffic, live percentiles, automatic safety stops, and exportable reports.</p>
       </div>
       <div class="status-pill" id="statusPill">Idle</div>
     </header>
 
     <section class="notice">
-      <strong>Safety boundary:</strong> this tool only accepts <code>localhost</code>, <code>127.0.0.1</code>, and <code>[::1]</code>. RPS, concurrency, and duration are hard-capped in code.
+      <strong>Hard safety boundary:</strong> only <code>localhost</code>, <code>127.0.0.1</code>, and <code>[::1]</code> are accepted. Runtime caps remain <strong>5 RPS</strong>, <strong>3 concurrent requests</strong>, and <strong>30 seconds</strong> per run.
     </section>
 
     <section class="grid">
       <form class="card controls" id="testForm">
         <div class="card-head">
           <div><span class="eyebrow">CONFIGURATION</span><h2>Test profile</h2></div>
+          <span class="mini-pill" id="profileHint">Constant</span>
         </div>
 
         <label>
@@ -36,28 +37,56 @@
 
         <div class="two-col">
           <label>
-            Requests / second
-            <input id="rps" type="number" min="1" max="5" value="2" required />
+            Profile
+            <select id="profile">
+              <option value="constant">Constant</option>
+              <option value="ramp">Ramp up</option>
+              <option value="step">Step load</option>
+            </select>
           </label>
           <label>
-            Concurrency
-            <input id="concurrency" type="number" min="1" max="3" value="1" required />
+            Max requests / second
+            <input id="rps" type="number" min="1" max="5" value="3" required />
           </label>
         </div>
 
-        <label>
-          Duration (seconds)
-          <input id="duration" type="number" min="1" max="30" value="10" required />
-        </label>
+        <div class="two-col">
+          <label>
+            Concurrency
+            <input id="concurrency" type="number" min="1" max="3" value="2" required />
+          </label>
+          <label>
+            Duration (seconds)
+            <input id="duration" type="number" min="1" max="30" value="15" required />
+          </label>
+        </div>
+
+        <div class="threshold-box">
+          <div class="card-head compact">
+            <div><span class="eyebrow">AUTO STOP</span><h3>Failure thresholds</h3></div>
+          </div>
+          <div class="two-col">
+            <label>
+              Error rate %
+              <input id="maxErrorRate" type="number" min="5" max="100" value="50" required />
+            </label>
+            <label>
+              p95 latency (ms)
+              <input id="maxP95" type="number" min="100" max="5000" value="2500" required />
+            </label>
+          </div>
+          <small>Thresholds are evaluated after at least 5 completed samples.</small>
+        </div>
 
         <label class="check-row">
           <input id="ownership" type="checkbox" required />
-          <span>I own or am authorized to test this local service.</span>
+          <span>I own or am explicitly authorized to test this local service.</span>
         </label>
 
         <div class="actions">
-          <button class="primary" type="submit" id="startBtn">Start safe test</button>
-          <button class="danger" type="button" id="stopBtn" disabled>Stop now</button>
+          <button class="primary" type="submit" id="startBtn">Start controlled test</button>
+          <button class="danger" type="button" id="stopBtn" disabled>Emergency stop</button>
+          <button class="ghost" type="button" id="exportBtn" disabled>Export report</button>
         </div>
         <p class="error" id="errorBox"></p>
       </form>
@@ -67,11 +96,20 @@
           <div><span class="eyebrow">LIVE METRICS</span><h2>Current run</h2></div>
           <span id="elapsed">0.0s</span>
         </div>
-        <div class="metric-grid">
+        <div class="metric-grid metric-grid-pro">
           <article><span>Total</span><strong id="total">0</strong></article>
           <article><span>Success</span><strong id="success">0</strong></article>
           <article><span>Errors</span><strong id="errors">0</strong></article>
-          <article><span>Avg latency</span><strong id="latency">0 ms</strong></article>
+          <article><span>Error rate</span><strong id="errorRate">0%</strong></article>
+          <article><span>Average</span><strong id="latency">0 ms</strong></article>
+          <article><span>p50</span><strong id="p50">0 ms</strong></article>
+          <article><span>p95</span><strong id="p95">0 ms</strong></article>
+          <article><span>p99</span><strong id="p99">0 ms</strong></article>
+        </div>
+        <div class="run-strip">
+          <span>Effective RPS <strong id="effectiveRps">0</strong></span>
+          <span>Active <strong id="activeRequests">0</strong></span>
+          <span>Stop reason <strong id="stopReason">—</strong></span>
         </div>
         <div class="progress"><div id="progressBar"></div></div>
         <div class="spark" id="sparkline" aria-label="Latency history"></div>
@@ -85,15 +123,20 @@
       </div>
       <div class="log-table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Status</th><th>Latency</th><th>Time</th></tr></thead>
-          <tbody id="logRows"><tr class="placeholder"><td colspan="4">No requests yet.</td></tr></tbody>
+          <thead><tr><th>#</th><th>Status</th><th>Latency</th><th>Profile RPS</th><th>Time</th></tr></thead>
+          <tbody id="logRows"><tr class="placeholder"><td colspan="5">No requests yet.</td></tr></tbody>
         </table>
       </div>
     </section>
 
     <section class="card docs">
-      <div><span class="eyebrow">DESIGN GOAL</span><h2>Safe by construction</h2></div>
-      <p>The browser validates the hostname before every run, rejects non-local targets, caps the load profile, and lets you stop immediately. Requests use <code>cache: "no-store"</code> and a short per-request abort timeout.</p>
+      <div><span class="eyebrow">PRO CONTROLS</span><h2>More insight, same strict limits</h2></div>
+      <div class="feature-grid">
+        <article><strong>Constant</strong><span>Hold a fixed bounded request rate.</span></article>
+        <article><strong>Ramp</strong><span>Increase gradually from 1 RPS up to the selected cap.</span></article>
+        <article><strong>Step</strong><span>Increase in discrete stages while staying below the hard cap.</span></article>
+        <article><strong>Guardrails</strong><span>Auto-stop on excessive errors or p95 latency.</span></article>
+      </div>
     </section>
   </main>
   <script src="script.js"></script>
