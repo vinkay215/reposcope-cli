@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SafeLoad Pro - controlled localhost load testing with profiles, percentiles, thresholds, reports, and run history." />
+  <meta name="description" content="SafeLoad Pro - controlled localhost benchmarking with scenarios, percentiles, thresholds, reports, and baseline comparison." />
   <title>SafeLoad Pro</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -13,13 +13,13 @@
       <div>
         <span class="eyebrow">CONTROLLED LOCAL BENCHMARKING</span>
         <h1>SafeLoad Pro</h1>
-        <p>Profile local services with bounded traffic, live percentiles, automatic safety stops, exportable reports, and local run history.</p>
+        <p>Benchmark local services with bounded traffic, weighted endpoint scenarios, live percentiles, safety thresholds, and baseline comparison.</p>
       </div>
       <div class="status-pill" id="statusPill">Idle</div>
     </header>
 
     <section class="notice">
-      <strong>Hard safety boundary:</strong> only <code>localhost</code>, <code>127.0.0.1</code>, and <code>[::1]</code> are accepted. Runtime caps remain <strong>5 RPS</strong>, <strong>3 concurrent requests</strong>, and <strong>30 seconds</strong> per run.
+      <strong>Hard safety boundary:</strong> only loopback hosts are accepted. Runtime caps remain <strong>5 RPS</strong>, <strong>3 concurrent requests</strong>, and <strong>30 seconds</strong> per run.
     </section>
 
     <section class="grid">
@@ -30,9 +30,17 @@
         </div>
 
         <label>
-          Target URL
+          Base URL
           <input id="target" type="url" value="http://localhost:3000/" required />
           <small>Allowed hosts: localhost, 127.0.0.1, ::1</small>
+        </label>
+
+        <label>
+          Weighted endpoint scenario
+          <textarea id="scenario" rows="4" spellcheck="false">/ 60
+/health 25
+/api/status 15</textarea>
+          <small>One relative path per line: <code>/path weight</code>. Weights are normalized automatically. Absolute remote URLs are rejected.</small>
         </label>
 
         <div class="two-col">
@@ -62,18 +70,10 @@
         </div>
 
         <div class="threshold-box">
-          <div class="card-head compact">
-            <div><span class="eyebrow">AUTO STOP</span><h3>Failure thresholds</h3></div>
-          </div>
+          <div class="card-head compact"><div><span class="eyebrow">AUTO STOP</span><h3>Failure thresholds</h3></div></div>
           <div class="two-col">
-            <label>
-              Error rate %
-              <input id="maxErrorRate" type="number" min="5" max="100" value="50" required />
-            </label>
-            <label>
-              p95 latency (ms)
-              <input id="maxP95" type="number" min="100" max="5000" value="2500" required />
-            </label>
+            <label>Error rate %<input id="maxErrorRate" type="number" min="5" max="100" value="50" required /></label>
+            <label>p95 latency (ms)<input id="maxP95" type="number" min="100" max="5000" value="2500" required /></label>
           </div>
           <small>Thresholds are evaluated after at least 5 completed samples.</small>
         </div>
@@ -85,6 +85,7 @@
 
         <div class="actions">
           <button class="primary" type="submit" id="startBtn">Start controlled test</button>
+          <button class="ghost" type="button" id="pauseBtn" disabled>Pause</button>
           <button class="danger" type="button" id="stopBtn" disabled>Emergency stop</button>
           <button class="ghost" type="button" id="exportBtn" disabled>Export JSON</button>
           <button class="ghost" type="button" id="exportCsvBtn" disabled>Export CSV</button>
@@ -110,6 +111,7 @@
         <div class="run-strip">
           <span>Effective RPS <strong id="effectiveRps">0</strong></span>
           <span>Active <strong id="activeRequests">0</strong></span>
+          <span>Endpoint <strong id="currentEndpoint">—</strong></span>
           <span>Stop reason <strong id="stopReason">—</strong></span>
         </div>
         <div class="progress"><div id="progressBar"></div></div>
@@ -117,39 +119,40 @@
       </section>
     </section>
 
-    <section class="card logs-card">
+    <section class="card comparison-card">
       <div class="card-head">
-        <div><span class="eyebrow">REQUEST LOG</span><h2>Latest samples</h2></div>
-        <button class="ghost" id="clearLogs" type="button">Clear</button>
+        <div><span class="eyebrow">BASELINE COMPARISON</span><h2>Regression signal</h2></div>
+        <span class="mini-pill" id="regressionBadge">No baseline</span>
       </div>
-      <div class="log-table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Status</th><th>Latency</th><th>Profile RPS</th><th>Time</th></tr></thead>
-          <tbody id="logRows"><tr class="placeholder"><td colspan="5">No requests yet.</td></tr></tbody>
-        </table>
+      <div class="comparison-grid">
+        <article><span>Previous p95</span><strong id="baselineP95">—</strong></article>
+        <article><span>Current p95</span><strong id="currentP95Compare">—</strong></article>
+        <article><span>p95 delta</span><strong id="p95Delta">—</strong></article>
+        <article><span>Error delta</span><strong id="errorDelta">—</strong></article>
       </div>
     </section>
 
     <section class="card logs-card">
-      <div class="card-head">
-        <div><span class="eyebrow">RUN HISTORY</span><h2>Recent local results</h2></div>
-        <button class="ghost" id="clearHistory" type="button">Clear history</button>
-      </div>
+      <div class="card-head"><div><span class="eyebrow">REQUEST LOG</span><h2>Latest samples</h2></div><button class="ghost" id="clearLogs" type="button">Clear</button></div>
       <div class="log-table-wrap">
-        <table>
-          <thead><tr><th>Time</th><th>Profile</th><th>Total</th><th>Error rate</th><th>p95</th><th>Reason</th></tr></thead>
-          <tbody id="historyRows"><tr class="placeholder"><td colspan="6">No saved runs yet.</td></tr></tbody>
-        </table>
+        <table><thead><tr><th>#</th><th>Endpoint</th><th>Status</th><th>Latency</th><th>Profile RPS</th><th>Time</th></tr></thead><tbody id="logRows"><tr class="placeholder"><td colspan="6">No requests yet.</td></tr></tbody></table>
+      </div>
+    </section>
+
+    <section class="card logs-card">
+      <div class="card-head"><div><span class="eyebrow">RUN HISTORY</span><h2>Recent local results</h2></div><button class="ghost" id="clearHistory" type="button">Clear history</button></div>
+      <div class="log-table-wrap">
+        <table><thead><tr><th>Time</th><th>Profile</th><th>Total</th><th>Error rate</th><th>p95</th><th>Reason</th></tr></thead><tbody id="historyRows"><tr class="placeholder"><td colspan="6">No saved runs yet.</td></tr></tbody></table>
       </div>
     </section>
 
     <section class="card docs">
-      <div><span class="eyebrow">PRO CONTROLS</span><h2>More insight, same strict limits</h2></div>
+      <div><span class="eyebrow">PRO CONTROLS</span><h2>Scenario-aware benchmarking</h2></div>
       <div class="feature-grid">
-        <article><strong>Profiles</strong><span>Constant, ramp, and stepped bounded request rates.</span></article>
-        <article><strong>Percentiles</strong><span>Live p50, p95, and p99 latency tracking.</span></article>
-        <article><strong>Reports</strong><span>Export JSON summaries or CSV request samples.</span></article>
-        <article><strong>History</strong><span>Keep the five most recent run summaries in localStorage.</span></article>
+        <article><strong>Weighted scenarios</strong><span>Distribute bounded requests across multiple local endpoints.</span></article>
+        <article><strong>Pause / resume</strong><span>Temporarily stop dispatching without aborting the run.</span></article>
+        <article><strong>Baseline compare</strong><span>Compare current p95 and error rate with the previous local run.</span></article>
+        <article><strong>Regression badge</strong><span>Surface a simple warning when latency or errors degrade materially.</span></article>
       </div>
     </section>
   </main>
