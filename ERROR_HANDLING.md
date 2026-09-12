@@ -1,5 +1,5 @@
 # Error Handling
-
+ok
 RepoScope CLI is designed to fail clearly when GitHub repository data cannot be retrieved.
 
 ## Common error cases
