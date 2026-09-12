@@ -1,138 +1,293 @@
 <div align="center">
 
-# 🧪 SafeLoad Lab
+# ⚡ SafeLoad Lab
 
-**A compact, browser-based load-testing dashboard for services you own and run locally.**
+### Controlled local load testing with a clean real-time dashboard
 
-Built with plain **HTML, CSS, and JavaScript**. No build step. No third-party runtime dependencies.
+**Fast to run · Easy to inspect · Safe by design**
 
-![Status](https://img.shields.io/badge/status-active-22c55e?style=flat-square)
-![Frontend](https://img.shields.io/badge/frontend-HTML%20%7C%20CSS%20%7C%20JavaScript-0ea5e9?style=flat-square)
-![Safety](https://img.shields.io/badge/safety-loopback%20only-f59e0b?style=flat-square)
-![License](https://img.shields.io/badge/use-authorized%20testing%20only-ef4444?style=flat-square)
+Built with **HTML · CSS · JavaScript** — no framework, no build step, no runtime dependencies.
+
+![Status](https://img.shields.io/badge/status-active-22c55e?style=for-the-badge)
+![Runtime](https://img.shields.io/badge/runtime-browser-2563eb?style=for-the-badge)
+![Stack](https://img.shields.io/badge/stack-HTML%20%7C%20CSS%20%7C%20JS-f59e0b?style=for-the-badge)
+![Safety](https://img.shields.io/badge/safety-loopback%20only-ef4444?style=for-the-badge)
+
+<br>
+
+> A lightweight performance-testing playground for services you own and run locally.
 
 </div>
 
 ---
 
-## ✨ Overview
+## 🧭 What is SafeLoad Lab?
 
-SafeLoad Lab is designed for small, controlled performance checks during local development. It helps you observe request throughput, response status, latency, and failures without needing a heavy benchmarking stack.
+SafeLoad Lab is a browser-based load-testing dashboard for **small, controlled performance checks during local development**.
 
-The current implementation intentionally limits traffic and only allows loopback targets so the project stays focused on safe development and educational testing.
+It lets you generate bounded HTTP traffic against a local service while watching request volume, success/failure counts, latency, progress, and recent activity in real time.
 
-## 🚀 Features
+The project deliberately prioritizes **visibility, predictability, and safety** over raw traffic generation.
 
-- Live request, success, and error counters
-- Average latency tracking
-- Lightweight latency sparkline
-- Latest-request activity log
-- Configurable requests per second
-- Configurable concurrency
-- Configurable test duration
-- Automatic per-request timeout
-- Emergency stop with `AbortController`
-- Responsive dark dashboard
-- Zero build tooling
-- Zero third-party JavaScript dependencies
+---
 
-## 🛡️ Safety boundaries
+## ✨ Current capabilities
 
-The browser enforces the following limits in `script.js`:
+| Area | Capability |
+| --- | --- |
+| 🎯 Targeting | Loopback-only targets: `localhost`, `127.0.0.1`, `[::1]` |
+| ⚙️ Load controls | Configurable RPS, concurrency, and duration |
+| 📊 Observability | Total, success, error, average latency, progress |
+| 📈 Visualization | Lightweight latency sparkline |
+| 🧾 Logging | Recent request status + latency table |
+| ⏱ Reliability | Per-request timeout with `AbortController` |
+| 🛑 Safety | Emergency stop button |
+| ✅ Authorization | Explicit confirmation required before every run |
+| 🧩 Architecture | Plain static HTML/CSS/JS |
+| 📦 Dependencies | None at runtime |
 
-| Limit | Value |
+---
+
+## 🛡️ Hard safety limits
+
+These are enforced in `script.js`, not only through HTML form attributes.
+
+| Guardrail | Current value |
 | --- | ---: |
 | Allowed hosts | `localhost`, `127.0.0.1`, `[::1]` |
-| Maximum RPS | `5` |
+| Maximum requests / second | `5` |
 | Maximum concurrency | `3` |
 | Maximum duration | `30 seconds` |
-| Request timeout | `5 seconds` |
-| Authorization confirmation | Required |
-| Manual emergency stop | Available |
+| Per-request timeout | `5 seconds` |
+| Authorization checkbox | Required |
+| Emergency stop | Enabled |
 
-> SafeLoad Lab is intended for services you own or are explicitly authorized to test. Remote third-party targets are rejected by design.
+> [!IMPORTANT]
+> SafeLoad Lab is intended only for systems you own or are explicitly authorized to test. Remote third-party targets are rejected by design.
 
-## 🖥️ Quick start
+---
 
-Clone the repository and serve it with any static HTTP server.
+## 🔄 How a test run works
+
+```text
+┌──────────────────────┐
+│  Configure profile   │
+│ URL · RPS · workers  │
+│      · duration      │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Validate safety      │
+│ loopback + hard caps │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Schedule requests    │
+│ bounded concurrency  │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Observe live metrics │
+│ status · latency     │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Complete or stop     │
+│ timeout / emergency  │
+└──────────────────────┘
+```
+
+---
+
+## 🚀 Quick start
+
+Clone the repository:
 
 ```bash
 git clone https://github.com/vinkay215/reposcope-cli.git
 cd reposcope-cli
+```
+
+Serve the static files:
+
+```bash
 python3 -m http.server 8080
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:8080
 ```
 
-Start a separate local service, for example on port `3000`, then enter its URL in SafeLoad Lab:
+Then point SafeLoad Lab at a local service you own, for example:
 
 ```text
 http://localhost:3000/
 ```
 
-Choose a bounded profile, confirm authorization, and start the test.
+Choose a bounded profile, confirm authorization, and start the run.
 
-## 📁 Project structure
+---
+
+## 📊 Live dashboard
+
+During a test, the interface exposes the core signals you need immediately:
+
+| Metric | Meaning |
+| --- | --- |
+| **Total** | Completed requests |
+| **Success** | Successful responses |
+| **Errors** | Failed requests or unsuccessful responses |
+| **Avg latency** | Mean request duration |
+| **Progress** | Percentage of the configured run completed |
+| **Request log** | Recent status and latency samples |
+| **Sparkline** | Relative latency trend |
+
+---
+
+## 🧱 Project structure
 
 ```text
 .
-├── index.html          # Dashboard UI
-├── styles.css          # Responsive dark interface
-├── script.js           # Validation, scheduler, metrics and safety limits
+├── index.html          # Main dashboard interface
+├── styles.css          # Responsive dark-mode styling
+├── script.js           # Scheduler, metrics, validation, safety caps
 ├── README.md           # Project documentation
-├── CONTRIBUTING.md     # Contribution guide
-└── CHANGELOG.md        # Release history
+├── CONTRIBUTING.md     # Contribution workflow
+└── CHANGELOG.md        # Project history
 ```
 
-## 📊 What the dashboard shows
+---
 
-During a run, SafeLoad Lab displays:
+## 🧠 Design principles
 
-| Metric | Description |
-| --- | --- |
-| Total | Number of completed requests |
-| Success | Successful HTTP responses |
-| Errors | Failed requests or non-success responses |
-| Avg latency | Mean request duration |
-| Progress | Current run completion |
-| Request log | Recent status and latency samples |
+SafeLoad Lab is built around four rules:
 
-## 🔒 Design philosophy
+1. **Safe by default** — dangerous targets and excessive load are rejected.
+2. **Observable by default** — every run should expose useful metrics while it executes.
+3. **Small enough to understand** — no framework is required to inspect the implementation.
+4. **Easy to stop** — tests are bounded by timeouts, duration limits, and manual cancellation.
 
-SafeLoad Lab favors **predictable behavior over maximum traffic generation**.
+---
 
-The safety model is enforced in JavaScript rather than relying only on HTML form limits. Host validation, hard caps, timeouts, and emergency cancellation are all part of the runtime logic.
+## 🧪 Example local test setup
 
-## 🗺️ Roadmap
+A simple development workflow might look like this:
 
-Planned improvements include:
+```text
+Terminal A: local app
+http://localhost:3000
 
-- p50 / p95 / p99 latency metrics
-- Step and ramp load profiles
-- Multi-endpoint scenarios
-- Threshold-based automatic stopping
-- JSON / CSV report export
-- Improved run history
-- Better visualization of latency trends
+Terminal B: SafeLoad Lab static server
+http://localhost:8080
+
+Browser:
+SafeLoad Lab → target http://localhost:3000/
+```
+
+This makes it useful for checking local API behavior, latency changes, error handling, and basic capacity regressions during development.
+
+---
+
+## 🔭 SafeLoad Pro roadmap
+
+The next stage of the project is focused on deeper **authorized performance analysis**, not unrestricted traffic generation.
+
+### Planned observability
+
+- p50 / p95 / p99 latency
+- requests-per-second timeline
+- error-rate timeline
+- status-code distribution
+- run history
+- comparative benchmark summaries
+
+### Planned test profiles
+
+- constant load
+- ramp-up profile
+- step profile
+- short spike profile with bounded ceilings
+- multi-endpoint scenarios
+
+### Planned automation
+
+- latency threshold stop
+- error-rate threshold stop
+- JSON report export
+- CSV report export
+- reusable local test profiles
+
+### Safety stays non-negotiable
+
+Future features should continue to preserve:
+
+- explicit authorization
+- allowlisted targets
+- hard traffic ceilings
+- short timeouts
+- bounded duration
+- emergency stop controls
+
+---
+
+## 🧪 Current vs planned
+
+| Capability | Status |
+| --- | :---: |
+| Loopback target validation | ✅ |
+| RPS control | ✅ |
+| Concurrency control | ✅ |
+| Duration cap | ✅ |
+| Live counters | ✅ |
+| Average latency | ✅ |
+| Request log | ✅ |
+| Emergency stop | ✅ |
+| p50 / p95 / p99 | 🛠 Planned |
+| Ramp / step profiles | 🛠 Planned |
+| Multi-endpoint scenarios | 🛠 Planned |
+| Threshold-based auto-stop | 🛠 Planned |
+| JSON / CSV reports | 🛠 Planned |
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome. Please keep changes focused and preserve the project's safety boundaries.
+Contributions are welcome when they keep the project focused on **safe, measurable, authorized testing**.
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the recommended workflow.
+Recommended contribution areas:
+
+- UI/UX improvements
+- metrics and visualization
+- local test scenarios
+- documentation
+- testability
+- accessibility
+- safety validation
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow.
+
+---
 
 ## ⚠️ Responsible use
 
-Use this project only on systems you own or have explicit permission to test. Do not modify the safety controls to target third-party infrastructure or generate abusive traffic.
+Use SafeLoad Lab only on infrastructure you own or have explicit permission to test.
+
+Do not remove safety controls to target third-party systems, evade rate limits, or generate abusive traffic.
 
 ---
 
 <div align="center">
 
-**SafeLoad Lab** · Small, observable, controlled load testing for local development.
+### SafeLoad Lab
+
+**Small footprint. Clear metrics. Controlled testing.**
+
+Made for local development and authorized performance experiments.
 
 </div>
