@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🧪 SafeLoad Lab
+# 🧪 SafeLoad
 
 **A compact, browser-based load-testing dashboard for services you own and run locally.**
 
